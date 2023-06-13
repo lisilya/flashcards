@@ -4,5 +4,5 @@ from .serializers import FlashcardSerializer
 from .models import Flashcard
 
 class FlashcardViewSet(viewsets.ModelViewSet):
-    queryset = Flashcard.object.all()
+    queryset = Flashcard.objects.all()
     serializer_class = FlashcardSerializer
