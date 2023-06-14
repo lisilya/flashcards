@@ -18,6 +18,12 @@ class FlashcardViewSet(viewsets.ModelViewSet):
         flashcard.correct_answers += 1
         flashcard.save()
         return Response({'status': 'correct answer counter incremented'}, status=status.HTTP_200_OK)
+    
+    @action(detail=True, methods=['delete'])
+    def delete_flashcard(self, request, pk=None):
+        flashcard = self.get_object()
+        flashcard.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 def create_flashcards_from_url(self, request):
     url = request.data.get('url')
