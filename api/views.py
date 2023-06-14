@@ -1,12 +1,13 @@
 from django.shortcuts import render
 from rest_framework import viewsets, status
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 from .serializers import FlashcardSerializer
 from .models import Flashcard
 from bs4 import BeautifulSoup
 import requests
 import spacy
+from django.db.models import F
 
 class FlashcardViewSet(viewsets.ModelViewSet):
     queryset = Flashcard.objects.all()
@@ -18,6 +19,13 @@ class FlashcardViewSet(viewsets.ModelViewSet):
         flashcard.correct_answers += 1
         flashcard.save()
         return Response({'status': 'correct answer counter incremented'}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'])
+    def incorrect_answer(self, request, pk=None):
+        flashcard = self.get_object()
+        flashcard.incorrect_answers += 1
+        flashcard.save()
+        return Response({'status': 'incorrect answer counter incremented'}, status=status.HTTP_200_OK)
     
     @action(detail=True, methods=['delete'])
     def delete_flashcard(self, request, pk=None):
@@ -41,3 +49,9 @@ def create_flashcards_from_url(self, request):
                     'answer': 'TBD',
                 })
     return Response(flashcards)
+
+@api_view(['GET'])
+def getLessKnownFlashcards(request):
+    flashcards = Flashcard.objects.annotate(knowledge_ratio=F('correct_answers') / (F('correct_answers') + F('incorrect_answers'))).order_by('knowledge_ratio')[:10]
+    serializer = FlashcardSerializer(flashcards, many=True)
+    return Response(serializer.data)
