@@ -33,6 +33,7 @@ class FlashcardViewSet(viewsets.ModelViewSet):
         flashcard.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+@action(detail=False, methods=['post'])
 def create_flashcards_from_url(self, request):
     url = request.data.get('url')
     response = requests.get(url)
@@ -44,10 +45,14 @@ def create_flashcards_from_url(self, request):
         doc = nlp(paragraph.text)
         for sent in doc.sents:
             if len(sent) > 1:
-                flashcards.append({
+                flashcard_data = {
                     'question': str(sent),
                     'answer': 'TBD',
-                })
+                }
+                serializer = FlashcardSerializer(data=flashcard_data)
+                if serializer.is_valid():
+                    serializer.save()
+                flashcards.append(flashcard_data)
     return Response(flashcards)
 
 @api_view(['GET'])
