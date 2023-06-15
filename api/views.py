@@ -2,12 +2,16 @@ from django.shortcuts import render
 from rest_framework import viewsets, status
 from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
-from .serializers import FlashcardSerializer
-from .models import Flashcard
+from .serializers import CategorySerializer, FlashcardSerializer
+from .models import Category, Flashcard
 from bs4 import BeautifulSoup
 import requests
 import spacy
 from django.db.models import F
+
+class CategoryViewSet(viewsets.ModelViewSet):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
 
 class FlashcardViewSet(viewsets.ModelViewSet):
     queryset = Flashcard.objects.all()
@@ -48,8 +52,10 @@ def create_flashcards_from_url(self, request):
                 flashcard_data = {
                     'question': str(sent),
                     'answer': 'TBD',
+                    'correct_answers': 0,
+                    'incorrect_answers': 0,
                 }
-                serializer = FlashcardSerializer(data=flashcard_data)
+                serializer = FlashcardSerializer(data=flashcard_data) # type: ignore
                 if serializer.is_valid():
                     serializer.save()
                 flashcards.append(flashcard_data)
